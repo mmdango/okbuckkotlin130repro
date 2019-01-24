@@ -1,0 +1,8 @@
+@groovy.transform.Field private java.lang.String version
+ext {
+  compileSdkVersion = '28'
+  buildToolsVersion = '28.0.0'
+  targetSdkVersion = '27'
+  minSdkVersion = '21'
+  kotlinVersion = '1.2.60'
+}
