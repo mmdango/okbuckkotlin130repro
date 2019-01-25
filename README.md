@@ -28,7 +28,9 @@ This error goes away if you comment out
 
 `classpath 'com.uber:okbuck:0.46.2'`
 
-Additionally, after running `./gradlew app:dependencies`, you can see this dependency changes:
+in the root build.gradle
+
+Additionally, running `./gradlew app:dependencies` shows this dependency:
 
 ```
 kotlinCompilerClasspath
@@ -40,3 +42,5 @@ kotlinCompilerClasspath
      \--- org.jetbrains.kotlin:kotlin-reflect:1.3.0
           \--- org.jetbrains.kotlin:kotlin-stdlib:1.3.0 (*)
 ```
+
+This changes when the okbuck plugin is added/removed
