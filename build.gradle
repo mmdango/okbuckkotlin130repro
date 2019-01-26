@@ -21,6 +21,17 @@ allprojects {
     }
 }
 
+apply plugin: 'com.uber.okbuck'
+okbuck {
+    buckBinary = "com.github.facebook:buck:91b30eb@pex"
+    lint {
+        disabled = true
+    }
+    jetifier {
+      aarOnly = true
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

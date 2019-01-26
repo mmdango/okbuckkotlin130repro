@@ -1,42 +1,67 @@
 To repro:
 
-build with gradle:
+build with buck:
 
 i.e.
 
-`./gradlew assembleDebug`
+`./buckw build //app:bin_debug`
 
 and observe:
 
 ```
-w: Runtime JAR files in the classpath have the version 1.2, which is older than the API version 1.3. Consider using the runtime of version 1.3, or pass '-api-version 1.2' explicitly to restrict the available APIs to the runtime of version 1.2. You can also pass '-language-version 1.2' instead, which will restrict not only the APIs to the specified version, but also the language features
-e: warnings found and -Werror specified
-w: /Users/michael_dang/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.60/d95e6419da840e672342e5d4348f0bdd1d58b84d/kotlin-stdlib-common-1.2.60.jar: Runtime JAR file has version 1.2 which is older than required for API version 1.3
-w: /Users/michael_dang/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.60/391695759d8fc80042c2c11bc19fc6f2787be495/kotlin-stdlib-1.2.60.jar: Runtime JAR file has version 1.2 which is older than required for API version 1.3
-> Task :app:compileDebugKotlin FAILED
+Buck encountered an internal error
+java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+	at com.facebook.buck.jvm.kotlin.JarBackedReflectedKotlinc.buildWithClasspath(JarBackedReflectedKotlinc.java:208)
+	at com.facebook.buck.jvm.kotlin.KotlincStep.execute(KotlincStep.java:96)
+	at com.facebook.buck.step.DefaultStepRunner.runStepForBuildTarget(DefaultStepRunner.java:45)
+	... 16 more
+Caused by: java.lang.reflect.InvocationTargetException
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.facebook.buck.jvm.kotlin.JarBackedReflectedKotlinc.buildWithClasspath(JarBackedReflectedKotlinc.java:199)
+	... 18 more
+Caused by: java.lang.NoClassDefFoundError: gnu/trove/THashMap
+	at org.jetbrains.kotlin.com.intellij.openapi.vfs.CharsetToolkit.<clinit>(CharsetToolkit.java:104)
+	at org.jetbrains.kotlin.com.intellij.util.LineSeparator.<init>(LineSeparator.java:31)
+	at org.jetbrains.kotlin.com.intellij.util.LineSeparator.<clinit>(LineSeparator.java:22)
+	at org.jetbrains.kotlin.cli.common.messages.PlainTextMessageRenderer.<clinit>(PlainTextMessageRenderer.java:51)
+	at org.jetbrains.kotlin.cli.common.messages.MessageRenderer.<clinit>(MessageRenderer.java:29)
+	at org.jetbrains.kotlin.cli.common.CLITool.exec(CLITool.kt:39)
+	... 23 more
+Caused by: java.lang.ClassNotFoundException: gnu.trove.THashMap
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+	... 29 more
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileDebugKotlin'.
-> Compilation error. See log for more details
+    When running <kotlinc>.
+    When building rule //app:src_debug.
 ```
 
-Although the Kotlin version is set to 1.2.60
-
-This error goes away if you comment out 
-
-`classpath 'com.uber:okbuck:0.46.2'`
-
-Additionally, after running `./gradlew app:dependencies`, you can see this dependency changes:
-
+A subsequent build has a different stacktrace:
 ```
-kotlinCompilerClasspath
-\--- org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.0
-     +--- org.jetbrains.kotlin:kotlin-stdlib:1.3.0
-     |    +--- org.jetbrains.kotlin:kotlin-stdlib-common:1.3.0
-     |    \--- org.jetbrains:annotations:13.0
-     +--- org.jetbrains.kotlin:kotlin-script-runtime:1.3.0
-     \--- org.jetbrains.kotlin:kotlin-reflect:1.3.0
-          \--- org.jetbrains.kotlin:kotlin-stdlib:1.3.0 (*)
+Buck encountered an internal error
+java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+	at com.facebook.buck.jvm.kotlin.JarBackedReflectedKotlinc.buildWithClasspath(JarBackedReflectedKotlinc.java:208)
+	at com.facebook.buck.jvm.kotlin.KotlincStep.execute(KotlincStep.java:96)
+	at com.facebook.buck.step.DefaultStepRunner.runStepForBuildTarget(DefaultStepRunner.java:45)
+	... 16 more
+Caused by: java.lang.reflect.InvocationTargetException
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.facebook.buck.jvm.kotlin.JarBackedReflectedKotlinc.buildWithClasspath(JarBackedReflectedKotlinc.java:199)
+	... 18 more
+Caused by: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+	at org.jetbrains.kotlin.cli.common.CLITool.exec(CLITool.kt:39)
+	... 23 more
+
+    When running <kotlinc>.
+    When building rule //app:src_debug.
 ```
+
+
+This only happens with Kotlin 1.3.20
